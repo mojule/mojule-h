@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>mojule-h in browser</title>
+    <style>
+      html{ font-family: sans-serif; }
+    </style>
+  </head>
+  <body>
+    <script src="./dist/index.js"></script>
+    <script>
+      (function(){
+        'use strict'
+
+        var H = window.mojule.H
+
+        // don't assume destructuring
+        var text = H.text
+        var comment = H.comment
+        var documentFragment = H.documentFragment
+        var element = H.element
+        var div = H.div
+        var p = H.p
+        var strong = H.strong
+        var input = H.input
+
+        var fragment =
+          documentFragment(
+            comment('Whose line is it anyway?'),
+            div({id:'main'},
+              p('The quick brown fox jumps over the ',strong('lazy dog')),
+              input({type:'text',name:'firstName',placeholder:'Alex'})
+            ),
+            comment('Fragment not (usually) necessary but make sure it works'),
+            documentFragment(
+              comment('Text not necessary but etc.'),
+              p(text('lol '),'wut')
+            ),
+            comment('But what if it is not in the spec?'),
+            element('customtag',{class:'kk'},
+              p('OK that works for me')
+            )
+          )
+
+        document.querySelector( 'body' ).appendChild( fragment )
+      })()
+    </script>
+  </body>
+</html>
