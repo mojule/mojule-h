@@ -1,6 +1,7 @@
 # mojule-h
 
-A bit like hyperscript, but for mojule-dom
+A bit like [hyperscript](https://github.com/hyperhype/hyperscript), but for
+[mojule-dom](https://github.com/mojule/mojule-dom)
 
 mojule-dom is a virtual DOM, but you can use it with other backing types like a
 real DOM by using a custom adapter, see below
@@ -120,8 +121,8 @@ Note that the default DOM implementation takes a title and adds various children
 like an html tag element etc. - if you are backing this with the real DOM, you
 will have to clear out all the children before returning the node.
 
-See './example' for mojule-h running in the browser using an adapter over the
-real DOM
+See ['./example'](example/) for mojule-h running in the browser using an adapter
+over the real DOM
 
 ## JML Adapter (JSON Markup Language)
 
