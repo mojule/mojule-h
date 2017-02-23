@@ -100,7 +100,8 @@ const dom =
 
 An adapter is an object containing the following functions (where `Node` is your
 custom backing type). Type notation below should be self explanatory, it's
-similar to rtype/typescript etc.
+similar to [rtype](https://github.com/ericelliott/rtype) /
+[typescript](https://github.com/Microsoft/TypeScript) et al.
 
 ```javascript
 {
