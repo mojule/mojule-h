@@ -8,7 +8,7 @@ var html = Html();
 var capitalizeFirstLetter = utils.capitalizeFirstLetter;
 
 
-var defaultAdapter = {
+var mojuleDomAdapter = {
   isNode: function isNode(node) {
     return typeof node.get === 'function';
   },
@@ -28,9 +28,9 @@ html.tagNames().forEach(function (name) {
 
   var fname = 'create' + capitalizeFirstLetter(name.slice(1));
 
-  defaultAdapter[fname] = function () {
+  mojuleDomAdapter[fname] = function () {
     return Dom(Dom[fname].apply(Dom, arguments));
   };
 });
 
-module.exports = defaultAdapter;
+module.exports = mojuleDomAdapter;

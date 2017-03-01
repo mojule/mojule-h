@@ -5,7 +5,7 @@ const utils = require( 'mojule-utils' )
 const html = Html()
 const { capitalizeFirstLetter } = utils
 
-const defaultAdapter = {
+const mojuleDomAdapter = {
   isNode: node => typeof node.get === 'function',
   createElement: tagName =>
     Dom( Dom.createElement( tagName ) ),
@@ -20,8 +20,8 @@ html.tagNames().forEach( name => {
 
   const fname = 'create' + capitalizeFirstLetter( name.slice( 1 ) )
 
-  defaultAdapter[ fname ] = ( ...args ) =>
+  mojuleDomAdapter[ fname ] = ( ...args ) =>
     Dom( Dom[ fname ]( ...args ) )
 })
 
-module.exports = defaultAdapter
+module.exports = mojuleDomAdapter

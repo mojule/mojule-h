@@ -1,15 +1,16 @@
 # mojule-h
 
-A bit like [hyperscript](https://github.com/hyperhype/hyperscript), but for
-[mojule-dom](https://github.com/mojule/mojule-dom)
+Create [mojule-dom](https://github.com/mojule/mojule-dom) virtual nodes using a
+concise API, like [hyperscript](https://github.com/hyperhype/hyperscript).
 
-mojule-dom is a virtual DOM, but you can use it with other backing types like a
-real DOM by using a custom adapter, see below
+This is an implementation of
+[html-script](https://github.com/mojule/html-script) using an adapter over
+`mojule-dom`. To use this syntax in the browser, see
+[dom-script](https://github.com/mojule/dom-script), or to use it with some other
+structure, eg some virtual DOM or whatever, see the
+[html-script readme](https://github.com/mojule/html-script/blob/master/readme.md)
 
-You can also use it to create a JSON-compatible object via an included adapter,
-and convert that object back to a usable DOM, see below
-
-## Example, using mojule-dom
+## Example
 
 ```javascript
 'use strict'
@@ -47,8 +48,6 @@ const dom =
       )
     )
   )
-
-console.log( dom.stringify() )
 ```
 
 ```html
@@ -75,100 +74,135 @@ console.log( dom.stringify() )
 </html>
 ```
 
-## Adapters
+## Installation and usage
 
-You can get an instance of mojule-h that uses your custom adapter by calling it
-as a function with your adapter as the parameter:
+`npm install mojule-h`
 
 ```javascript
 const H = require( 'mojule-h' )
-const adapter = require( './path/to/your/adapter' )
 
-const Mine = H( adapter )
+// now destructure out the functions you want - alternatively, use H.div etc.
+const { div, p, comment, element } = H
 
-const {
-  document, documentType, text, comment, documentFragment, element,
-  html, head, body, meta, title, div, p, strong, input
-} = Mine
+// any objects passed will be treated as attributes
+// <div id="main"></div>
+const main = div( { id: 'main' } )
 
-const dom =
-  document(
-    documentType('html')
-    // etc.
+// any strings passed will be treated as text nodes
+// <p>Hello world!</p>
+const hello = p( 'Hello world!' )
+
+// non-element nodes also supported
+// <!--Hello world!-->
+const helloComment = comment( 'Hello world!' )
+
+// any nodes passed will be appended to the parent
+// <div><p>Hello</p><p>World</p></div>
+const nested =
+  div(
+    p( 'Hello' ),
+    p( 'World' )
+  )
+
+// stick in the real DOM
+document.body.appendChild( nested )
+
+// if html-script doesn't have the element you want
+// <custom id="myCustom">Hello world!</custom>
+const custom =
+  element( 'custom', { id: 'myCustom' },
+    'Hello world!'
   )
 ```
 
-An adapter is an object containing the following functions (where `Node` is your
-custom backing type). Type notation below should be self explanatory, it's
-similar to [rtype](https://github.com/ericelliott/rtype) /
-[typescript](https://github.com/Microsoft/TypeScript) et al.
+## Attributes
+
+An object passed to a `dom-script` function is treated as though it were an
+attribute map for the node. For the most part, it is expected to be a simple map
+of attribute name to attribute value, and the value is expected to be a string,
+with some exceptions listed below.
 
 ```javascript
-{
-  isNode: ( node:Node ) => Boolean,
-  createElement: ( tagName:String ) => elementNode:Node,
-  createText: ( value:String ) => textNode:Node,
-  appendChild: ( node:Node, child:Node ) => Void,
-  addAttributes: ( node:Node, attributes:Object ) => Void,
-  createDocument: () => documentNode:Node,
-  createDocumentType: ( name:String, publicId:String?, systemId:String? ) => documentTypeNode:Node,
-  createComment: ( value:String ) => commentNode:Node,
-  createDocumentFragment: () => documentFragmentNode:Node
-}
-```
-
-mojule-h expects `createDocument` to return a document node with no children!
-Note that the default DOM implementation takes a title and adds various children
-like an html tag element etc. - if you are backing this with the real DOM, you
-will have to clear out all the children before returning the node.
-
-See ['./example'](example/) for mojule-h running in the browser using an adapter
-over the real DOM
-
-## JML Adapter (JSON Markup Language)
-
-An adapter that uses JSON-compatible objects as a backing store is provided:
-
-```javascript
-const H = require( '../' )
-const J = H( H.adapters.jml )
-
-const { div, p, strong, input } = J
-
-const obj =
-  div({id:'main'},
-    p('The quick brown fox jumps over the ',strong('lazy dog')),
-    input({type:'text',name:'firstName',placeholder:'Alex'})
+const nameField =
+  div(
+    label( { for: 'firstName' }, 'First Name' ),
+    input( { type: 'text', name: 'firstName' } )
   )
-
-console.log( JSON.stringify( obj ) )
 ```
 
-```json
-["div",{"id":"main"},
-  ["p","The quick brown fox jumps over the ",["strong","lazy dog"]],
-  ["input",{"type":"text","name":"firstName","placeholder":"Alex"}]
-]
+```html
+<div>
+  <label for="firstName">First Name</label>
+  <input type="text" name="firstName" />
+</div>
 ```
 
-If you have some JML somewhere, you can also create nodes with the `fromJml`
-function:
+### boolean attributes
 
-Create mojule-dom nodes:
+To make working with boolean attributes easier, any attribute that has a boolean
+value will be treated as though the boolean attribute is present on the node if
+the value is `true`, and absent if the value is `false`:
+
 ```javascript
-const H = require( '../' )
-const jml = require( './path/to/jml.json' )
-
-const dom = H.fromJml( jml )
+div(
+  input( { type: 'radio', checked: true } ),
+  input( { type: 'radio', checked: false } )
+)
 ```
 
-With custom adapter:
+```html
+<div>
+  <input type="radio" checked />
+  <input type="radio" />
+</div>
+```
+
+### style
+
+Either a string, or an object of name value pairs:
+
 ```javascript
-const H = require( '../' )
-const adapter = require( './path/to/adapter' )
-const jml = require( './path/to/jml.json' )
+div(
+  p( { style: 'font-family: sans-serif' }, 'Hello' ),
+  p( { style: { 'font-family': 'sans-serif', 'font-size': '1rem' }, 'World' )
+)
+```
 
-const Mine = H( adapter )
+```html
+<div>
+  <p style="font-family: sans-serif">Hello</p>
+  <p style="font-family: sans-serif; font-size: 1rem;">World</p>
+</div>
+```
 
-const dom = Mine.fromJml( jml )
+### data
+
+An attribute named `data` with an object value will be treated similarly to the
+[dataSet](https://developer.mozilla.org/en/docs/Web/API/HTMLElement/dataset)
+property on DOM nodes, that is, the object keys will be converted from camelCase
+to dash-style with a `data-` prefix. This makes it easy to use your existing
+models to set data attributes without having to first mangle the names:
+
+```javascript
+div( { data: { firstName: 'Nik', lastName: 'Coughlin' } } )
+```
+
+```html
+<div data-first-name="Nik" data-last-name="Coughlin"></div>
+```
+
+### other types
+
+All other values are converted to a string via `String( value )`
+
+## JsonML
+
+Because JsonML is a convenient format for transportation and persistence, a
+helper method is provided to populate your DOM from `JsonML` data:
+
+```javascript
+const H = require( 'mojule-h' )
+const jsonML = require( './path/to/some/data.json' )
+
+const dom = H.fromJsonML( jsonML )
 ```
